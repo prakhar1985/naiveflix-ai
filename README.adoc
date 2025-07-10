@@ -1,0 +1,68 @@
+= 🎬 AI Genre Predictor (a.k.a. Naiveflix)
+Prakhar Srivastava <https://github.com/prakhar1985>
+:toc:
+:icons: font
+:source-highlighter: highlightjs
+
+> *"An AI that thinks every movie is Sci-Fi. We call that progress."*
+
+This repo contains a fun and beginner-friendly workshop series where you teach AI to predict movie genres from plot summaries. Start with classic models like TF-IDF + Naive Bayes, and scale up to embeddings, GPUs, and OpenShift AI.
+
+== 🔧 Environment Setup
+
+To set up your RHEL or Fedora system for this workshop, use the dedicated automation repo:
+
+➡️ https://github.com/prakhar1985/ai-lab-setup
+
+That repo will:
+- Create a Python virtual environment (`first-ai`)
+- Install required packages (`jupyterlab`, `pandas`, `scikit-learn`, `matplotlib`, etc.)
+- Launch JupyterLab for hands-on work
+
+Run it like this:
+
+[source,bash]
+----
+git clone https://github.com/prakhar1985/ai-lab-setup
+cd ai-lab-setup
+bash setup.sh
+source ~/first-ai/bin/activate
+jupyter lab
+----
+
+== 🗂️ Workshop Parts
+
+|===
+| Part | Description
+
+| Part 1
+| link:./notebooks/movie_genre_tfidf_nb.ipynb[TF-IDF + Naive Bayes: Your first text classifier]
+
+| Part 2
+| Coming soon: Sentence embeddings with MiniLM
+
+| Part 3
+| Coming soon: RHEL AI with GPU inference
+
+| Part 4
+| Coming soon: OpenShift AI for MLOps and production deployment
+|===
+
+== 🧠 What You'll Learn
+
+* How to turn text into vectors with TF-IDF
+* How to train a Naive Bayes classifier
+* How to debug with a confusion matrix
+* How sentence embeddings (MiniLM) can improve results
+* How to move from notebook to enterprise
+
+== 📦 Project Layout
+
+[source,text]
+----
+ai-genre-predictor/
+├── notebooks/
+│   └── movie_genre_tfidf_nb.ipynb      # Step-by-step genre classifier
+├── sample-data/
+│   └── more_movies.csv                 # Optional extension
+├── README.adoc
