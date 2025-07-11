@@ -63,6 +63,7 @@ jupyter lab
 ai-genre-predictor/
 ├── notebooks/
 │   └── movie_genre_tfidf_nb.ipynb      # Step-by-step genre classifier
+|   └── minilm_genre_classifier.ipynb   # Step-by-step Minillm Sentence embedding
 ├── sample-data/
 │   └── more_movies.csv                 # Optional extension
 ├── README.adoc
