@@ -684,6 +684,8 @@ print("💡 Each number represents how much the plot relates to different concep
 
 **The MPNet Magic:** Each movie plot gets converted into 768 numbers that represent everything MPNet understands about that story. It's like having a movie expert create a detailed analysis of every plot!
 
+**⏰ Why Embedding Generation Takes Time:** MPNet processes ~5,000 movie plots through 110 million parameters to create rich understanding vectors. Even with GPU acceleration, this deep analysis takes 1-3 minutes because quality embeddings require computational thoroughness - like a film critic carefully reading and analyzing thousands of scripts!
+
 ### **📝 COPY THIS CODE INTO A NEW JUPYTER CELL:**
 
 ### **Cell 6: Prepare Training Data**
@@ -742,6 +744,7 @@ print("-" * 40)
 
 print("🏋️ Training multiple classifiers on MPNet embeddings...")
 print("🏆 Let's see which algorithm works best with our rich embeddings!")
+print("⏰ Note: This training step will take 3-5 minutes - grab a coffee! ☕")
 
 # Define our classifier contestants
 classifiers = {
@@ -820,6 +823,8 @@ print(f"\n🎉 Training complete! Our champion is {best_classifier_name}!")
 ```
 
 **The Algorithm Battle:** We train multiple algorithms and let them compete. This way we find the best approach for our specific data instead of guessing!
+
+**⏰ Why This Takes 3-5 Minutes:** Each classifier goes through cross-validation (training on 5 different data splits) plus hyperparameter tuning to find the optimal settings. We're training Random Forest (300 trees), SVM with different kernels, and XGBoost with various parameters. It's like having 5 different cooking competitions with each chef trying multiple recipes - thorough but time-consuming! The wait is worth it for production-quality accuracy.
 
 ### **📝 COPY THIS CODE INTO A NEW JUPYTER CELL:**
 
