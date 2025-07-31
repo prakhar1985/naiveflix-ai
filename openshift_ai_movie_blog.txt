@@ -355,7 +355,7 @@ required_packages = [
     'onnxruntime==1.15.1'           # ONNX runtime
 ]
 
-print("🔍 Checking and installing required packages...")
+missing_packages = []
 for package in required_packages:
     package_name = package.split('>=')[0].split('==')[0]
     try:
@@ -368,15 +368,17 @@ for package in required_packages:
             import yaml
         else:
             __import__(package_name.replace('-', '_'))
-        print(f"✅ {package_name}")
     except ImportError:
-        print(f"📦 Installing {package}...")
-        if install_package(package):
-            print(f"✅ {package} installed successfully")
-        else:
-            print(f"❌ Failed to install {package}")
+        missing_packages.append(package)
 
-print("🎉 Production setup complete!")
+if missing_packages:
+    print(f"📦 Installing {len(missing_packages)} missing packages...")
+    for package in missing_packages:
+        if not install_package(package):
+            print(f"❌ Failed to install {package}")
+    print("✅ Setup complete!")
+else:
+    print("✅ All packages already installed!")
 ```
 
 **Why this is enterprise-grade:** Professional error handling, version pinning for reproducibility, comprehensive logging setup, and structured validation. No more dependency hell - this is code you can ship to production!
@@ -714,22 +716,8 @@ X_train, X_test, y_train, y_test = train_test_split(
     stratify=encoded_labels  # Keep genre balance in both sets
 )
 
-print(f"\n📊 Data split summary:")
-print(f"  • Training examples: {len(X_train)}")
-print(f"  • Testing examples: {len(X_test)}")
-print(f"  • Feature dimensions: {X_train.shape[1]}D (rich MPNet embeddings)")
-
-# Verify the split is balanced
-print(f"\n🎯 Genre balance verification:")
-train_genres = [label_encoder.classes_[i] for i in y_train]
-test_genres = [label_encoder.classes_[i] for i in y_test]
-
-for genre in label_encoder.classes_:
-    train_count = train_genres.count(genre)
-    test_count = test_genres.count(genre)
-    print(f"  • {genre}: Train {train_count}, Test {test_count}")
-
-print(f"\n✅ Data ready for classical ML training!")
+print(f"\n📊 Data split: {len(X_train)} train, {len(X_test)} test")
+print(f"✅ Data ready for training!")
 ```
 
 **Why this split matters:** We keep 20% of data hidden for testing, so we know if our model actually learned or just memorized. The stratified split ensures each genre is represented fairly.
@@ -737,6 +725,50 @@ print(f"\n✅ Data ready for classical ML training!")
 ### **📝 COPY THIS CODE INTO A NEW JUPYTER CELL:**
 
 ### **Cell 7: Train Multiple Classifiers (The Competition)**
+
+**🧠 Meet Our Algorithm Contestants:**
+
+Before we start training, let's understand what each algorithm brings to the movie genre party:
+
+### **🌳 Random Forest: The "Movie Critics Panel"**
+**What it does:** Creates 300 different "movie critics" (decision trees), each looking at different aspects of the plot embeddings. Then they vote on the genre.
+
+**Movie Analogy:** Like having a panel of 300 different movie critics - some focus on action words, others on emotional language, some on character descriptions. They all vote, and majority wins!
+
+**Why it's great for genres:** 
+- **Handles complexity:** Can capture subtle patterns like "romance + disaster = romantic disaster movie"
+- **Robust:** If some critics make weird decisions, others balance it out
+- **Fast:** Parallel voting is quick
+
+### **📊 Logistic Regression: The "Smart Probability Calculator"**
+**What it does:** Learns the probability of each genre based on the embedding features. It's like learning "if similarity to action movies is high AND emotional content is low, then 85% chance it's Action."
+
+**Movie Analogy:** Like a Vegas odds-maker who's studied thousands of movies and can tell you "Based on these plot elements, there's a 70% chance this is a thriller, 20% chance drama, 10% chance action."
+
+**Why it's great for genres:**
+- **Gives confidence scores:** Not just "it's Action" but "72% confident it's Action"
+- **Linear relationships:** Good at learning "more explosions = more likely Action"
+- **Fast and reliable:** The Toyota Camry of ML - always works
+
+### **🚀 XGBoost: The "Netflix Algorithm Genius"**
+**What it does:** Builds a sequence of "corrective critics" - each new critic focuses on fixing the mistakes of previous ones. It's like having increasingly specialized movie experts.
+
+**Movie Analogy:** First critic says "looks like Action." Second critic notices "wait, there's romance," third critic catches "but it's set in space," and so on. Each expert fixes previous mistakes.
+
+**Why it's often the winner:**
+- **Learns from mistakes:** Each round fixes previous errors
+- **Handles complex patterns:** Can learn "action + space + romance = sci-fi adventure"
+- **Competition champion:** Often wins Kaggle contests
+
+### **⚔️ SVM: The "Pattern Recognition Master"**
+**What it does:** Finds the perfect "decision boundaries" in the 768-dimensional embedding space. It's like drawing invisible lines that separate genres.
+
+**Movie Analogy:** Like a bouncer at an exclusive club who can instantly tell if you belong in the "Horror VIP section" or "Romance lounge" just by looking at you.
+
+**Why it's powerful:**
+- **RBF Kernel:** Can handle complex, curved patterns ("this weird combination screams Horror")
+- **Linear Kernel:** Great for clear separations ("high action words = Action genre")
+- **Mathematically elegant:** Finds optimal separation lines
 
 ```python
 print("\n🏋️ CELL 7: Train Multiple Classifiers")
@@ -996,81 +1028,7 @@ predicted = predict_movie_genre(sample_plot, show_confidence=True, show_top_n=5)
 
 ### **📝 COPY THIS CODE INTO A NEW JUPYTER CELL:**
 
-### **Cell 10: Test with Fun Examples**
 
-```python
-print("\n🚀 CELL 10: Test with Fun Examples")
-print("-" * 40)
-
-print("🚀 Testing our movie AI with interesting examples...")
-
-# Let's test our AI with some legendary movie plots (but slightly disguised!)
-test_examples = [
-    # Classic movies our AI should totally nail 🎯
-    ("A massive shark terrorizes a peaceful beach town during the peak summer tourist season, forcing the local sheriff to hunt it down", "Horror/Thriller"),  # Obviously Jaws!
-    
-    ("A young orphan wizard discovers he's famous in the magical world and must attend a school for magic while battling an evil dark lord who killed his parents", "Fantasy/Adventure"),  # Harry Potter vibes
-    
-    ("Two teenagers from feuding families fall deeply in love but their romance ends in heartbreaking tragedy", "Romance/Drama"),  # Romeo & Juliet classic
-    
-    ("Advanced artificial intelligence robots become self-aware and declare war on humanity, forcing survivors to fight for their lives", "Science Fiction/Action"),  # Terminator territory
-    
-    ("A group of college friends go camping in the woods for a fun weekend but get hunted by a deranged killer wearing a mask", "Horror"),  # Every slasher movie ever
-    
-    # Let's try some tricky modern twists 🎪
-    ("A lonely office worker discovers an underground fight club that becomes an anti-consumer revolution", "Drama/Thriller"),  # Fight Club - can it detect the psychological drama?
-    
-    ("A detective with a photographic memory investigates bizarre murders while struggling with his own mental health", "Crime/Thriller"),  # Sherlock/Memento style
-    
-    ("Sentient toys come to life when their owner isn't around and must work together to return home", "Animation/Comedy"),  # Toy Story - will it catch the family-friendly vibe?
-    
-    ("Elite space marines are sent to investigate a distress signal but encounter deadly alien creatures on a distant planet", "Science Fiction/Horror"),  # Aliens - sci-fi or horror?
-    
-    ("A time traveler keeps trying to save his girlfriend from dying but each attempt creates worse timeline disasters", "Science Fiction/Drama"),  # Groundhog Day meets tragedy
-    
-    # Bonus edge cases that might confuse our AI 🤯
-    ("A superhero loses his powers and must learn to be human while saving the city with just his wits", "Action/Drama"),  # Superhero without the super?
-    
-    ("Professional thieves infiltrate dreams to steal secrets but get trapped in limbo between reality and the subconscious", "Science Fiction/Thriller")  # Inception - good luck, AI!
-]
-
-print(f"\n🎬 Testing {len(test_examples)} diverse movie plots:")
-print("="*70)
-
-correct_predictions = 0
-
-for i, (plot, expected) in enumerate(test_examples, 1):
-    print(f"\n🎬 Test {i}:")
-    predicted = predict_movie_genre(plot, show_confidence=True, show_top_n=3)
-    
-    # Check if our prediction matches any of the expected genres
-    expected_genres = expected.lower().split('/')
-    is_correct = any(genre.strip() in predicted.lower() for genre in expected_genres)
-    
-    if is_correct:
-        print(f"✅ CORRECT! (Expected: {expected})")
-        correct_predictions += 1
-    else:
-        print(f"❌ Different from expected (Expected: {expected})")
-    
-    print("-" * 50)
-
-# Calculate our example accuracy
-example_accuracy = correct_predictions / len(test_examples)
-print(f"\n📊 Quick Test Results:")
-print(f"🎯 Correct predictions: {correct_predictions}/{len(test_examples)} ({example_accuracy*100:.1f}%)")
-
-if example_accuracy > 0.7:
-    print("🏆 EXCELLENT: Our AI really understands movies!")
-elif example_accuracy > 0.5:
-    print("✅ GOOD: Solid understanding with room to grow!")
-else:
-    print("📚 LEARNING: Good start, shows promise!")
-```
-
-**The Fun Test:** These examples test edge cases and complex plots to see if our AI really "gets it" or just got lucky.
-
-### **📝 COPY THIS CODE INTO A NEW JUPYTER CELL:**
 
 ### **Cell 11: Production-Ready Prediction Interface**
 
@@ -1144,28 +1102,15 @@ class MovieGenrePredictor:
 # Initialize production predictor
 predictor = MovieGenrePredictor()
 
-# Test with example plots
-test_examples = [
-    "A shark terrorizes a beach town during summer vacation, forcing the sheriff to hunt it down",
-    "A young wizard discovers his magical heritage and attends a school for magic",
-    "Two rival families in Verona lead to forbidden love and tragic ending",
-    "Robots from the future come back to prevent an apocalyptic war",
-    "A detective investigates a series of murders in a dark, rainy city"
-]
+# Quick test
+test_plot = "A young wizard discovers his magical heritage and attends a school for magic"
+result = predictor.predict(test_plot)
 
-print("\n🎬 Testing with example plots:")
-print("=" * 60)
+print(f"\n🎬 Quick Test:")
+print(f"Plot: {result['plot']}")
+print(f"🎯 Predicted: {result['predicted_genre']} ({result['confidence_scores'][0]['confidence']:.1%})")
 
-for i, plot in enumerate(test_examples, 1):
-    result = predictor.predict(plot, top_n=3)
-    print(f"\n{i}. Plot: {result['plot']}")
-    print(f"   🎯 Predicted: {result['predicted_genre']}")
-    print(f"   📊 Top 3 predictions:")
-    for j, score in enumerate(result['confidence_scores']):
-        emoji = "🥇" if j == 0 else "🥈" if j == 1 else "🥉"
-        print(f"      {emoji} {score['genre']}: {score['confidence']:.3f} ({score['confidence']*100:.1f}%)")
-
-print("\n✅ Production predictor ready for deployment!")
+print("\n✅ Predictor working! Use interactive testing for more tests.")
 ```
 
 **The Production Experience:** Clean, professional prediction interface with proper error handling, logging, and batch processing capabilities. This code is ready for enterprise deployment!
@@ -2025,78 +1970,21 @@ Looking back at this journey, here's what I learned:
 3. **Reliability > Peak Performance**: A model that works reliably at 54% beats one that crashes at 90%
 4. **Debuggable > Black Box**: Being able to understand failures is more valuable than perfect performance
 
-## 🔧 Troubleshooting Guide
+## 🔧 Quick Troubleshooting
 
-If you run into issues, here are the most common problems and solutions:
+**Package Issues**: Missing imports? Run Cell 1 again and restart kernel.
 
-### **Package Installation Issues**
-**Problem**: `ImportError: No module named 'sentence_transformers'`  
-**Solution**: Run `!pip install sentence-transformers` and restart kernel
+**Memory Issues**: CUDA out of memory? Reduce `batch_size` from 32 to 16.
 
-**Problem**: `ImportError: No module named 'xgboost'`  
-**Solution**: Run `!pip install xgboost` (or skip XGBoost, other models work fine)
+**Data Issues**: File not found? Upload `tmdb_5000_movies.csv` to your workspace.
 
-**Problem**: `ImportError: No module named 'flask'`  
-**Solution**: Run `!pip install flask` (needed for API deployment section)
+**Deployment Issues**: MinIO problems? Check `oc get pods -n minio` and use credentials `admin`/`password123`.
 
-**Problem**: `ImportError: cannot import name 'split_complex_to_pairs' from 'onnx.helper'`  
-**Solution**: This shouldn't happen since ONNX packages are now installed in Cell 1. If you encounter this, restart your kernel and re-run Cell 1.
+## 🎯 Next Steps
 
-### **Memory Issues**
-**Problem**: "CUDA out of memory" or similar  
-**Solution**: Reduce batch_size from 32 to 16 or 8 in the embedding generation
+**Quick Wins**: Try `paraphrase-mpnet-base-v2` for better embeddings, or combine multiple classifiers.
 
-**Problem**: "CPU memory error"  
-**Solution**: Restart kernel and run cells one by one
-
-### **Data Issues**
-**Problem**: "File not found: tmdb_5000_movies.csv"  
-**Solution**: Upload the dataset to your JupyterLab workspace
-
-**Problem**: Low accuracy (below 40%)  
-**Solution**: Check your data processing - make sure genres are extracted correctly
-
-### **MinIO & Deployment Issues**
-**Problem**: `MountVolume Setup failed for volume 'storage-config'`  
-**Solution**: This means MinIO isn't properly deployed. Run the MinIO deployment commands and check `oc get pods -n minio | grep minio`
-
-**Problem**: Can't access MinIO console  
-**Solution**: Check the route with `oc get route minio-console -n minio` and ensure the URL is accessible
-
-**Problem**: MinIO login fails  
-**Solution**: Use credentials `admin` / `password123` (or check your MINIO_ROOT_USER/PASSWORD environment variables)
-
-**Problem**: Model deployment fails with S3 connection error  
-**Solution**: Verify the MinIO endpoint `http://minio.minio.svc.cluster.local:9000` and ensure the bucket `models` exists
-
-**Problem**: ONNX file not found in MinIO  
-**Solution**: Ensure you uploaded `movie_genre_classifier.onnx` to the `models` bucket in MinIO console
-
-### **Model Performance Issues**
-**Problem**: All predictions are the same genre  
-**Solution**: Check class balance in your training data
-
-**Problem**: Very low confidence scores  
-**Solution**: This is normal - movie genres are inherently ambiguous
-
-## 🎯 Future Improvements
-
-Want to make this even better? Here are some ideas:
-
-### **🚀 Easy Improvements:**
-1. **Try different embedding models**: `paraphrase-mpnet-base-v2` or `all-roberta-large-v1`
-2. **Ensemble methods**: Combine multiple classifiers for better performance
-3. **Feature engineering**: Add movie metadata (year, budget, runtime)
-
-### **🏗️ Advanced Projects:**
-1. **Multi-label classification**: Predict multiple genres per movie
-2. **Confidence calibration**: Make probability scores more reliable
-3. **Active learning**: Iteratively improve with user feedback
-
-### **🌟 Production Enhancements:**
-1. **A/B testing**: Compare different models in production
-2. **Monitoring**: Track model performance over time
-3. **Auto-retraining**: Update the model with new data
+**Production**: Add monitoring, A/B testing, and auto-retraining for enterprise deployment.
 
 ## 🎉 Conclusion: We Actually Did It!
 
