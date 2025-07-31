@@ -756,8 +756,7 @@ classifiers = {
     ),
     'Logistic Regression': LogisticRegression(
         max_iter=2000,       # Enough iterations to converge
-        random_state=42,     # Reproducible results
-        multi_class='ovr'    # One-vs-Rest for multiple genres
+        random_state=42      # Reproducible results
     ),
     'SVM (RBF Kernel)': SVC(
         kernel='rbf',        # Radial Basis Function kernel
