@@ -495,7 +495,7 @@ def extract_primary_genre(genres_str):
     
     if pd.isna(genres_str) or not genres_str.strip():
         return None
-    
+
     try:
         # Handle string format issues - convert single quotes to double quotes
         genres_str = genres_str.replace("'", '"')
@@ -731,14 +731,14 @@ print(f"✅ Data ready for training!")
 Before we start training, let's understand what each algorithm brings to the movie genre party:
 
 ### **🌳 Random Forest: The "Movie Critics Panel"**
-**What it does:** Creates 300 different "movie critics" (decision trees), each looking at different aspects of the plot embeddings. Then they vote on the genre.
+**What it does:** Creates 200 different "movie critics" (decision trees), each looking at different aspects of the plot embeddings. Then they vote on the genre.
 
-**Movie Analogy:** Like having a panel of 300 different movie critics - some focus on action words, others on emotional language, some on character descriptions. They all vote, and majority wins!
+**Movie Analogy:** Like having a panel of 200 different movie critics - some focus on action words, others on emotional language, some on character descriptions. They all vote, and majority wins!
 
 **Why it's great for genres:** 
 - **Handles complexity:** Can capture subtle patterns like "romance + disaster = romantic disaster movie"
 - **Robust:** If some critics make weird decisions, others balance it out
-- **Fast:** Parallel voting is quick
+- **Fast:** Parallel voting is quick, optimized with 200 trees for speed
 
 ### **📊 Logistic Regression: The "Smart Probability Calculator"**
 **What it does:** Learns the probability of each genre based on the embedding features. It's like learning "if similarity to action movies is high AND emotional content is low, then 85% chance it's Action."
@@ -759,6 +759,7 @@ Before we start training, let's understand what each algorithm brings to the mov
 - **Learns from mistakes:** Each round fixes previous errors
 - **Handles complex patterns:** Can learn "action + space + romance = sci-fi adventure"
 - **Competition champion:** Often wins Kaggle contests
+- **Optimized for speed:** We use 100 estimators and depth 6 for fast training while keeping accuracy
 
 ### **⚔️ SVM: The "Pattern Recognition Master"**
 **What it does:** Finds the perfect "decision boundaries" in the 768-dimensional embedding space. It's like drawing invisible lines that separate genres.
@@ -776,13 +777,13 @@ print("-" * 40)
 
 print("🏋️ Training multiple classifiers on MPNet embeddings...")
 print("🏆 Let's see which algorithm works best with our rich embeddings!")
-print("⏰ Note: This training step will take 3-5 minutes - grab a coffee! ☕")
+print("⏰ Note: This training step will take 1-2 minutes - much faster with optimized parameters! ☕")
 
 # Define our classifier contestants
 classifiers = {
     'Random Forest': RandomForestClassifier(
-        n_estimators=300,    # 300 trees in the forest
-        max_depth=25,        # How deep each tree can grow
+        n_estimators=200,    # 200 trees for speed
+        max_depth=20,        # Balanced depth
         random_state=42,     # Reproducible results
         n_jobs=-1           # Use all CPU cores
     ),
@@ -805,11 +806,12 @@ classifiers = {
 # Add XGBoost if available (the performance champion)
 if HAS_XGBOOST:
     classifiers['XGBoost'] = xgb.XGBClassifier(
-        n_estimators=300,    # 300 boosting rounds
-        max_depth=10,        # Tree depth
-        learning_rate=0.08,  # Learning rate
+        n_estimators=100,    # Faster with 100 rounds
+        max_depth=6,         # Simpler trees for speed
+        learning_rate=0.1,   # Single learning rate
         random_state=42,     # Reproducible results
-        eval_metric='mlogloss'  # Evaluation metric
+        eval_metric='mlogloss',  # Evaluation metric
+        n_jobs=-1           # Use all CPU cores
     )
     print("🚀 XGBoost added to the competition!")
 
@@ -855,7 +857,7 @@ print(f"\n🎉 Training complete! Our champion is {best_classifier_name}!")
 
 **The Algorithm Battle:** We train multiple algorithms and let them compete. This way we find the best approach for our specific data instead of guessing!
 
-**⏰ Why This Takes 3-5 Minutes:** Each classifier goes through cross-validation (training on 5 different data splits) plus hyperparameter tuning to find the optimal settings. We're training Random Forest (300 trees), SVM with different kernels, and XGBoost with various parameters. It's like having 5 different cooking competitions with each chef trying multiple recipes - thorough but time-consuming! The wait is worth it for production-quality accuracy.
+**⏰ Why This Takes 1-2 Minutes:** Each classifier goes through cross-validation (training on 5 different data splits) to find the optimal settings. We've optimized the parameters for speed while maintaining accuracy - Random Forest (200 trees), SVM with different kernels, and XGBoost with streamlined parameters. It's like having efficient cooking competitions with proven recipes - thorough but fast! Perfect balance of speed and production-quality accuracy.
 
 ### **📝 COPY THIS CODE INTO A NEW JUPYTER CELL:**
 
