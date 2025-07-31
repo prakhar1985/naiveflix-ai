@@ -1180,8 +1180,18 @@ print("-" * 40)
 
 def interactive_movie_testing():
     """Interactive testing interface"""
+    # Check if all required variables are available
+    required_vars = ['best_classifier', 'embedding_model', 'label_encoder', 'X_test', 'y_test', 'X_train']
+    missing_vars = [var for var in required_vars if var not in globals()]
+    
+    if missing_vars:
+        print(f"❌ Error: Missing required variables: {', '.join(missing_vars)}")
+        print("💡 Please run all previous cells (Cell 1-11) first to train the model!")
+        print("🔄 Make sure you've completed the training pipeline before testing.")
+        return
+    
     print("\n🎮 INTERACTIVE MOVIE GENRE PREDICTION")
-print("=" * 50)
+    print("=" * 50)
     print("🎬 Enter movie plots to see AI predictions!")
     print("💡 Type 'quit' to exit, 'stats' for model performance")
     print()
@@ -1242,7 +1252,12 @@ print("=" * 50)
 print("💡 To start interactive testing, uncomment the line above and run this cell!")
 ```
 
-**🎮 Interactive Fun:** This creates a live testing environment where you can type movie plots and see instant AI predictions with confidence scores! **Important: You need to uncomment the `interactive_movie_testing()` line to actually start the interactive session.**
+**🎮 Interactive Fun:** This creates a live testing environment where you can type movie plots and see instant AI predictions with confidence scores! 
+
+**⚠️ Important Prerequisites:**
+1. **Run all previous cells first** (Cell 1-11) to train your model
+2. **Uncomment** the `interactive_movie_testing()` line to start testing
+3. If you get `NameError`, it means you skipped training cells - go back and run them!
 
 **Visual Example:**
 ```
