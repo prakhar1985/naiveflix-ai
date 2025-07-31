@@ -1182,12 +1182,42 @@ def interactive_movie_testing():
     """Interactive testing interface"""
     # Check if all required variables are available
     required_vars = ['best_classifier', 'embedding_model', 'label_encoder', 'X_test', 'y_test', 'X_train']
-    missing_vars = [var for var in required_vars if var not in globals()]
+    missing_vars = []
+    
+    # Check each variable individually with helpful messages
+    try:
+        best_classifier
+    except NameError:
+        missing_vars.append('best_classifier (run Cell 7 - Training)')
+    
+    try:
+        embedding_model
+    except NameError:
+        missing_vars.append('embedding_model (run Cell 5 - Embeddings)')
+    
+    try:
+        label_encoder
+    except NameError:
+        missing_vars.append('label_encoder (run Cell 6 - Data Prep)')
+    
+    try:
+        X_test
+        y_test
+        X_train
+    except NameError:
+        missing_vars.append('X_test/y_test/X_train (run Cell 6 - Data Prep)')
     
     if missing_vars:
-        print(f"❌ Error: Missing required variables: {', '.join(missing_vars)}")
-        print("💡 Please run all previous cells (Cell 1-11) first to train the model!")
-        print("🔄 Make sure you've completed the training pipeline before testing.")
+        print(f"❌ Error: Missing required variables:")
+        for var in missing_vars:
+            print(f"   • {var}")
+        print("\n💡 Make sure you run all cells in order:")
+        print("   1. Cell 1-2: Setup & Data Loading")
+        print("   2. Cell 3-4: Device & Data Cleaning") 
+        print("   3. Cell 5: Generate Embeddings")
+        print("   4. Cell 6: Prepare Training Data")
+        print("   5. Cell 7: Train Classifiers")
+        print("   6. Then run this Cell 12!")
         return
     
     print("\n🎮 INTERACTIVE MOVIE GENRE PREDICTION")
@@ -1255,9 +1285,20 @@ print("💡 To start interactive testing, uncomment the line above and run this 
 **🎮 Interactive Fun:** This creates a live testing environment where you can type movie plots and see instant AI predictions with confidence scores! 
 
 **⚠️ Important Prerequisites:**
-1. **Run all previous cells first** (Cell 1-11) to train your model
+1. **Run all previous cells in order** to create the required variables:
+   - **Cell 1-2**: Package installation and data loading
+   - **Cell 3-4**: Device setup and data cleaning  
+   - **Cell 5**: Generate embeddings (creates `embedding_model`)
+   - **Cell 6**: Prepare training data (creates `X_train`, `X_test`, `y_test`, `label_encoder`)
+   - **Cell 7**: Train classifiers (creates `best_classifier`)
 2. **Uncomment** the `interactive_movie_testing()` line to start testing
-3. If you get `NameError`, it means you skipped training cells - go back and run them!
+3. If you get `NameError`, the enhanced error message will tell you exactly which cell to run!
+
+**🚨 Common Issues:**
+- `NameError: name 'best_classifier'` → **Missing Cell 7** (Training)
+- `NameError: name 'embedding_model'` → **Missing Cell 5** (Embeddings)  
+- `NameError: name 'label_encoder'` → **Missing Cell 6** (Data Prep)
+- `NameError: name 'X_test'` → **Missing Cell 6** (Data Prep)
 
 **Visual Example:**
 ```
