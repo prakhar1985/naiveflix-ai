@@ -1050,7 +1050,7 @@ for i, (plot, expected) in enumerate(test_examples, 1):
     if is_correct:
         print(f"✅ CORRECT! (Expected: {expected})")
         correct_predictions += 1
-else:
+    else:
         print(f"❌ Different from expected (Expected: {expected})")
     
     print("-" * 50)
@@ -1169,6 +1169,91 @@ print("\n✅ Production predictor ready for deployment!")
 ```
 
 **The Production Experience:** Clean, professional prediction interface with proper error handling, logging, and batch processing capabilities. This code is ready for enterprise deployment!
+
+### **📝 COPY THIS CODE INTO A NEW JUPYTER CELL:**
+
+### **Cell 12: Interactive Testing Interface**
+
+```python
+print("\n🎮 CELL 12: Interactive Testing Interface")
+print("-" * 40)
+
+def interactive_movie_testing():
+    """Interactive testing interface"""
+    print("\n🎮 INTERACTIVE MOVIE GENRE PREDICTION")
+print("=" * 50)
+    print("🎬 Enter movie plots to see AI predictions!")
+    print("💡 Type 'quit' to exit, 'stats' for model performance")
+    print()
+    
+    while True:
+        try:
+            plot = input("🎬 Enter movie plot (or 'quit'/'stats'): ").strip()
+            
+            if plot.lower() in ['quit', 'exit', 'q']:
+                print("👋 Thanks for testing!")
+                break
+            
+            if plot.lower() == 'stats':
+                print(f"\n📊 MODEL PERFORMANCE:")
+                print(f"   🎯 Test Accuracy: {best_classifier.score(X_test, y_test):.1%}")
+                print(f"   🎭 Genres: {len(label_encoder.classes_)}")
+                print(f"   📚 Training samples: {len(X_train)}")
+                print(f"   🧪 Test samples: {len(X_test)}")
+                continue
+            
+            if len(plot) < 10:
+                print("⚠️ Please enter a longer plot (at least 10 characters)")
+                continue
+            
+            # Make prediction using our trained model
+            plot_embedding = embedding_model.encode([plot], device=device.type)
+            prediction = best_classifier.predict(plot_embedding)[0]
+            predicted_genre = label_encoder.classes_[prediction]
+            
+            # Get confidence scores
+            probabilities = best_classifier.predict_proba(plot_embedding)[0]
+            top_indices = np.argsort(probabilities)[::-1][:5]
+            
+            print(f"\n🤖 AI Analysis:")
+            print(f"🎯 Predicted Genre: {predicted_genre}")
+            print(f"📊 Confidence Breakdown:")
+            
+            for i, idx in enumerate(top_indices):
+                genre = label_encoder.classes_[idx]
+                confidence = probabilities[idx]
+                emoji = "🥇" if i == 0 else "🥈" if i == 1 else "🥉" if i == 2 else f"{i+1}."
+                bar_length = int(confidence * 20)
+                bar = "█" * bar_length + "░" * (20 - bar_length)
+                print(f"   {emoji} {genre:<15} {bar} {confidence:.3f} ({confidence*100:.1f}%)")
+            
+            print()
+            
+        except KeyboardInterrupt:
+            print("\n👋 Session interrupted. Goodbye!")
+            break
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            print("💡 Please try again with a different plot.")
+
+# ⚠️ IMPORTANT: Uncomment the line below to start interactive testing
+# interactive_movie_testing()
+
+print("💡 To start interactive testing, uncomment the line above and run this cell!")
+```
+
+**🎮 Interactive Fun:** This creates a live testing environment where you can type movie plots and see instant AI predictions with confidence scores! **Important: You need to uncomment the `interactive_movie_testing()` line to actually start the interactive session.**
+
+**Visual Example:**
+```
+🎬 Enter movie plot: A young wizard discovers his magical heritage
+🤖 AI Analysis:
+🎯 Predicted Genre: Fantasy
+📊 Confidence Breakdown:
+   🥇 Fantasy        ████████████████████ 0.847 (84.7%)
+   🥈 Adventure      ████████░░░░░░░░░░░░ 0.098 (9.8%)
+   🥉 Family         ██░░░░░░░░░░░░░░░░░░ 0.055 (5.5%)
+```
 
 ## 🚀 Deployment and Next Steps
 
@@ -1532,14 +1617,14 @@ def predict():
         
         if response.status_code == 200:
             result = response.json()
-            return jsonify({
+        return jsonify({
                 'genre': result['predictions'][0]['genre'],
                 'confidence': f"{result['predictions'][0]['confidence']:.1%}",
                 'plot': plot
             })
         else:
             return jsonify({'error': f'Model service error: {response.status_code}'})
-            
+        
     except Exception as e:
         return jsonify({'error': f'Prediction failed: {str(e)}'})
 
