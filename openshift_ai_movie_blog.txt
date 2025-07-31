@@ -760,6 +760,7 @@ Before we start training, let's understand what each algorithm brings to the mov
 - **Handles complex patterns:** Can learn "action + space + romance = sci-fi adventure"
 - **Competition champion:** Often wins Kaggle contests
 - **Optimized for speed:** We use 100 estimators and depth 6 for fast training while keeping accuracy
+- **Deployment note:** For ONNX deployment, we'll use the best sklearn model (RandomForest/LogisticRegression) if XGBoost wins
 
 ### **⚔️ SVM: The "Pattern Recognition Master"**
 **What it does:** Finds the perfect "decision boundaries" in the 768-dimensional embedding space. It's like drawing invisible lines that separate genres.
@@ -853,6 +854,27 @@ for name, accuracy in sorted(results.items(), key=lambda x: x[1], reverse=True):
     print(f"  {emoji} {name}: {accuracy:.3f} ({accuracy*100:.1f}%)")
 
 print(f"\n🎉 Training complete! Our champion is {best_classifier_name}!")
+
+# Save models for deployment (including ONNX conversion options)
+import joblib
+
+print(f"\n💾 Saving models for deployment...")
+
+# Save the best classifier
+joblib.dump(best_classifier, 'movie_genre_classifier.pkl')
+print(f"✅ Best model saved: movie_genre_classifier.pkl ({best_classifier_name})")
+
+# Save individual models for ONNX conversion flexibility
+for name, model in trained_models.items():
+    safe_name = name.lower().replace(' ', '').replace('(', '').replace(')', '').replace('kernel', '')
+    joblib.dump(model, f'{safe_name}_model.pkl')
+    print(f"📁 {name} saved as: {safe_name}_model.pkl")
+
+# Save label encoder
+joblib.dump(label_encoder, 'label_encoder.pkl')
+print(f"🏷️ Label encoder saved: label_encoder.pkl")
+
+print(f"\n🚀 All models ready for deployment!")
 ```
 
 **The Algorithm Battle:** We train multiple algorithms and let them compete. This way we find the best approach for our specific data instead of guessing!
@@ -1392,7 +1414,7 @@ After your model server is created and running:
 3. **Click "Deploy model" on your server**
 4. **Convert Your Model to ONNX Format (Required)**
 
-Since sklearn models aren't directly supported, we need to convert to ONNX first. Let's ensure production-grade compatibility:
+Since sklearn models aren't directly supported, we need to convert to ONNX first. Note that XGBoost requires special handling for ONNX conversion, so we'll automatically use the best sklearn-compatible model (RandomForest or LogisticRegression) for deployment if XGBoost wins the training competition.
 
 ```python
 # Convert your sklearn model to ONNX format (run this in your JupyterLab workbench)
@@ -1461,17 +1483,57 @@ if compatibility_ready:
     # Step 4: Define input shape (768 dimensions for MPNet embeddings)
     initial_type = [('float_input', FloatTensorType([None, 768]))]
     
-    # Step 5: Convert to ONNX with production settings
-    print("🔄 Converting sklearn model to ONNX format...")
-    onnx_model = convert_sklearn(classifier, initial_types=initial_type)
+    # Step 5: Smart ONNX conversion with XGBoost handling
+    print("🔄 Converting model to ONNX format...")
     
-    # Step 6: Save ONNX model for deployment
-    with open("movie_genre_classifier.onnx", "wb") as f:
-        f.write(onnx_model.SerializeToString())
+    # Check if the model is XGBoost (needs special handling)
+    model_type = type(classifier).__name__
+    print(f"📋 Model type: {model_type}")
     
-    print("✅ Model successfully converted to ONNX format!")
-    print("📁 Saved as: movie_genre_classifier.onnx")
-    print("🚀 Ready for OpenShift AI deployment!")
+    if 'XGB' in model_type or 'xgboost' in str(type(classifier)).lower():
+        print("⚠️ XGBoost detected - ONNX conversion requires additional steps")
+        print("💡 For production deployment, using best sklearn-compatible model instead...")
+        
+        # Load the best sklearn model (should be RandomForest or LogisticRegression)
+        try:
+            # Look for alternative models in order of preference
+            sklearn_models = ['RandomForest', 'LogisticRegression', 'SVM']
+            alternative_found = False
+            
+            for model_name in sklearn_models:
+                try:
+                    alt_classifier = joblib.load(f'{model_name.lower()}_model.pkl')
+                    print(f"✅ Using {model_name} model for ONNX conversion")
+                    classifier = alt_classifier
+                    alternative_found = True
+                    break
+                except FileNotFoundError:
+                    continue
+            
+            if not alternative_found:
+                print("💡 Train and save a RandomForest model for ONNX deployment:")
+                print("   joblib.dump(trained_models['Random Forest'], 'randomforest_model.pkl')")
+                raise ValueError("No sklearn-compatible model found for ONNX conversion")
+                
+        except Exception as e:
+            print(f"⚠️ Using current best classifier anyway: {e}")
+            
+    # Convert to ONNX
+    try:
+        onnx_model = convert_sklearn(classifier, initial_types=initial_type)
+        
+        # Step 6: Save ONNX model for deployment
+        with open("movie_genre_classifier.onnx", "wb") as f:
+            f.write(onnx_model.SerializeToString())
+        
+        print("✅ Model successfully converted to ONNX format!")
+        print("📁 Saved as: movie_genre_classifier.onnx")
+        print("🚀 Ready for OpenShift AI deployment!")
+        
+    except Exception as e:
+        print(f"❌ ONNX conversion failed: {e}")
+        print("💡 Alternative: Use pickle (.pkl) model with custom serving runtime")
+        print("   Or train RandomForest/LogisticRegression for ONNX compatibility")
 else:
     print("⚠️ Please restart kernel and re-run for optimal ONNX compatibility")
 ```
@@ -2039,6 +2101,8 @@ Looking back at this journey, here's what I learned:
 **Data Issues**: File not found? Upload `tmdb_5000_movies.csv` to your workspace.
 
 **Deployment Issues**: MinIO problems? Check `oc get pods -n minio` and use credentials `admin`/`password123`.
+
+**ONNX Issues**: XGBoost conversion error? The system automatically uses RandomForest/LogisticRegression for ONNX deployment.
 
 ## 🎯 Next Steps
 
